@@ -140,10 +140,8 @@
 
     <div class="result" id="output"></div>
 
-    <div class="result" id="output"></div>
-
     <!-- Thermometer Visual -->
-    <div class="therometer-wrapper">
+    <div class="thermometer-wrapper">
         <div class="thermometer">
             <div class="thermometer-fill" id="thermoFill"></div>
         </div>
@@ -154,14 +152,39 @@
     <div class="feedback">
         <h2>Send Feedback</h2>
 
-        <input type="text" id="name" placeholder="Your name">
-        <textarea id="message" rows="4" placeholder="Your message"></textarea>
+        <form 
+            action="https://formspree.io/f/mdalgdnj" 
+            method="POST"
+            id="feedbackForm"
+        >
+            <input 
+                type="text" 
+                name="name" 
+                placeholder="Your name" 
+                required
+            >
 
-        <button onclick="sendFeedback()">Send Message</button>
+            <input 
+                type="email" 
+                name="email" 
+                placeholder="Your email (optional)"
+            >
+
+            <textarea 
+                name="message" 
+                rows="4" 
+                placeholder="Your message" 
+                required
+            ></textarea>
+
+            <button type="submit">Send Message</button>
+        </form>
+
+        <div id="formStatus" class="result"></div>
     </div>
 
     <footer>
-        © Ethan E. Lopez
+        © Ethan LLM Works
     </footer>
 </div>
 
@@ -204,23 +227,33 @@
             )`;
 
         document.getElementById("tempLabel").innerText = `${roundedF}°F`;
-    }    
-    function sendFeedback() {
-        const name = document.getElementById("name").value;
-        const message = document.getElementById("message").value;
+    }   
+    document.getElementById("feedbackForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
 
-        if (name === "" || message === "") {
-            alert("Please fill out both fields.");
-            return;
+    const form = event.target;
+    const data = new FormData(form);
+    const status = document.getElementById("formStatus");
+
+    try {
+        const response = await fetch(form.action, {
+            method: form.method,
+            body: data,
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            status.innerText = "Thank you! Your message has been sent.";
+            form.reset();
+        } else {
+            status.innerText = "Oops! Something went wrong. Please try again.";
         }
-
-        const email = "ethanelopez04@gmail.com";
-        const subject = "Website Feedback";
-        const body = `From: ${name}\n\n${message}`;
-
-        window.location.href =
-            `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    } catch (error) {
+        status.innerText = "Network error. Please try again later.";
     }
+});
 </script>
 </body>
 </html>
