@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Celsius to Fahrenheit Converter</title>
+    <style>
+        /* Global reset + font */
+        * {
+            box-sizing: border-box;
+            font-family: "Inter", "Segoe UI", Arial, sans-serif;
+        }
+    
+        body {
+            background:
+                radial-gradient(circle at 20% 20%, rgba(0, 123, 255, 0.08), transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(0, 200, 150, 0.06), transparent 45%),
+                linear-gradient(135deg, #f7f9fc, #eef2f7);
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+            margin: 0;
+        }    
+        .container {
+            background: white;
+            padding: 32px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+    
+        h1, h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    
+        input,
+        textarea {
+            width: 100%;
+            padding: 12px 14px;
+            margin-top: 12px;
+            margin-bottom: 18px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+    
+        input:focus,
+        textarea:focus {
+            border-color: #007bff;
+        }
+    
+        button {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background 0.2s ease;
+        }
+    
+        button:hover {
+            background: #0056b3;
+        }
+    
+        .result {
+            margin-top: 10px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            text-align: center;
+            font-size: 16px;
+        }
+    
+        .feedback {
+            margin-top: 35px;
+            padding-top: 25px;
+            border-top: 1px solid #e0e0e0;
+        }
+    
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #777;
+        }
+        /* Thermometer */
+        .thermometer {
+            width: 60px;
+            height: 220px;
+            border: 3px solid #ccc;
+            border-radius: 30px;
+            margin: 0 auto;
+            position: relative;
+            background: #f1f1f1;
+        }
+
+        .thermometer::after {
+            content: "";
+            position: absolute;
+            bottom: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70px;
+            height: 70px;
+            background: #ccc;
+            border-radius: 50%;
+            z-index: -1;
+        }
+
+        .thermometer-fill {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 0%;
+            border-radius: 30px;
+            transition: height 0.5s ease, background 0.4s ease;
+        }
+        .temp-label {
+            text-align: center;
+            margin-top: 10px;
+            font-weight: 600;
+        }        
+    </style>
+    </head>
+<body>
+
+<div class="container">
+    <h1>Celsius → Fahrenheit</h1>
+
+    <input type="number" id="celsius" placeholder="Enter degrees Celsius">
+
+    <button onclick="convert()">Convert</button>
+
+    <div class="result" id="output"></div>
+
+    <div class="result" id="output"></div>
+
+    <!-- Thermometer Visual -->
+    <div class="therometer-wrapper">
+        <div class="thermometer">
+            <div class="thermometer-fill" id="thermoFill"></div>
+        </div>
+        <div class="temp-label" id="tempLabel"></div>
+    </div>
+
+    <!-- Feedback Section -->
+    <div class="feedback">
+        <h2>Send Feedback</h2>
+
+        <input type="text" id="name" placeholder="Your name">
+        <textarea id="message" rows="4" placeholder="Your message"></textarea>
+
+        <button onclick="sendFeedback()">Send Message</button>
+    </div>
+
+    <footer>
+        © Ethan E. Lopez
+    </footer>
+</div>
+
+<script>
+    function convert() {
+        const celsius = document.getElementById("celsius").value;
+
+        if (celsius === "") {
+            document.getElementById("output").innerText = "Please enter a value.";
+            return;
+        }
+
+        const fahrenheit = (celsius * 9) / 5 + 32;
+        const roundedF = Math.round(fahrenheit);
+
+        document.getElementById("output").innerText =
+            `${celsius}°C is ${roundedF}°F`;
+
+        // Temperature range
+        const minF = -40;
+        const maxF = 120;
+
+        // Normalize temperature (0 → 1)
+        let normalized = (roundedF - minF) / (maxF - minF);
+        normalized = Math.max(0, Math.min(1, normalized));
+
+        // Thermometer height
+        const percentage = normalized * 100;
+        const thermoFill = document.getElementById("thermoFill");
+        thermoFill.style.height = percentage + "%";
+
+        // Continuous color shift (blue → red)
+        // Hue: 210 (cold blue) → 0 (hot red)
+        const hue = 210 - normalized * 210;
+
+        thermoFill.style.background =
+            `linear-gradient(to top,
+                hsl(${hue}, 85%, 50%),
+                hsl(${hue}, 85%, 70%)
+            )`;
+
+        document.getElementById("tempLabel").innerText = `${roundedF}°F`;
+    }    
+    function sendFeedback() {
+        const name = document.getElementById("name").value;
+        const message = document.getElementById("message").value;
+
+        if (name === "" || message === "") {
+            alert("Please fill out both fields.");
+            return;
+        }
+
+        const email = "ethanelopez04@gmail.com";
+        const subject = "Website Feedback";
+        const body = `From: ${name}\n\n${message}`;
+
+        window.location.href =
+            `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    }
+</script>
+</body>
+</html>
