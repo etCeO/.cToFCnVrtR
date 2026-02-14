@@ -14,7 +14,7 @@ The program is designed for accuracy, simplicity, and ease of integration into l
 
 ## View Ai-Inspired Website
 
-
+https://etceo.github.io/.tMpSwtcH/
 
 This website is part of a broader initiative titled Ethan LLM Works, a series of projects wherein I transform my original coding programs into interactive HTML-based simulations and calculators using advanced prompt engineering workflows.
 
