@@ -23,6 +23,7 @@ These projects can be thought of as a creative extension to my previous works, l
 Ethan LLM Works is a self-directed, independent passion of mine I pursue in free time as a means of exploring LLM product development, rapid prototyping, and interactive computational design in a highly intuitive and engaging manner.
 
 ### Sample Prompt Engineering
+**Core Implementation**
 
 1. "Make a simple HTML page for a Celsius to Fahrenheit converter based on this python script."
 2. "Modify the background to reflect a clean environmental theme."
