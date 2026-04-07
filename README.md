@@ -12,6 +12,13 @@ The program is designed for accuracy, simplicity, and ease of integration into l
 - Name: Ethan E. Lopez
 - Email: ethanelopez04@gmail.com
 
+## Sample Prompt Engineering
+
+1. "Make a simple HTML page for a Celsius to Fahrenheit converter based on this python script."
+2. "Modify the background to reflect a clean environmental theme."
+3. "Ensure all text follows a consistent font."
+4. "Modify text spacing to ensure titles and subtitles are displayed in the middle."
+
 ## View Ai-Inspired Website
 
 https://etceo.github.io/.tMpSwtcH/
