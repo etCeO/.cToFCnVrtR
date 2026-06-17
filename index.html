@@ -1,254 +1,1448 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Celsius to Fahrenheit Converter</title>
-    <style>
-        /* Global reset + font */
-        * {
-            box-sizing: border-box;
-            font-family: "Inter", "Segoe UI", Arial, sans-serif;
-        }
-    
-        body {
-            background:
-                radial-gradient(circle at 20% 20%, rgba(0, 123, 255, 0.08), transparent 40%),
-                radial-gradient(circle at 80% 80%, rgba(0, 200, 150, 0.06), transparent 45%),
-                linear-gradient(135deg, #f7f9fc, #eef2f7);
-            display: flex;
-            justify-content: center;
-            padding: 40px 20px;
-            margin: 0;
-        }    
-        .container {
-            background: white;
-            padding: 32px;
-            border-radius: 12px;
-            width: 100%;
-            max-width: 420px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
-    
-        h1, h2 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-    
-        input,
-        textarea {
-            width: 100%;
-            padding: 12px 14px;
-            margin-top: 12px;
-            margin-bottom: 18px;
-            font-size: 16px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            outline: none;
-            transition: border-color 0.2s ease;
-        }
-    
-        input:focus,
-        textarea:focus {
-            border-color: #007bff;
-        }
-    
-        button {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-bottom: 20px;
-            transition: background 0.2s ease;
-        }
-    
-        button:hover {
-            background: #0056b3;
-        }
-    
-        .result {
-            margin-top: 10px;
-            margin-bottom: 25px;
-            font-weight: 600;
-            text-align: center;
-            font-size: 16px;
-        }
-    
-        .feedback {
-            margin-top: 35px;
-            padding-top: 25px;
-            border-top: 1px solid #e0e0e0;
-        }
-    
-        footer {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 14px;
-            color: #777;
-        }
-        /* Thermometer */
-        .thermometer {
-            width: 60px;
-            height: 220px;
-            border: 3px solid #ccc;
-            border-radius: 30px;
-            margin: 0 auto;
-            position: relative;
-            background: #f1f1f1;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TempSwitch — Laboratory Temperature Analysis Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        .thermometer::after {
-            content: "";
-            position: absolute;
-            bottom: -22px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 70px;
-            height: 70px;
-            background: #ccc;
-            border-radius: 50%;
-            z-index: -1;
-        }
+  :root {
+    --bg:          #070b14;
+    --panel:       #0d1322;
+    --panel-2:     #111827;
+    --border:      rgba(0, 212, 255, 0.12);
+    --border-2:    rgba(255,255,255,0.06);
+    --cyan:        #00d4ff;
+    --cyan-dim:    rgba(0, 212, 255, 0.15);
+    --green:       #2dff9e;
+    --green-dim:   rgba(45, 255, 158, 0.12);
+    --amber:       #ffaa00;
+    --amber-dim:   rgba(255, 170, 0, 0.12);
+    --red:         #ff4757;
+    --red-dim:     rgba(255, 71, 87, 0.12);
+    --purple:      #a78bfa;
+    --text-1:      #e8edf5;
+    --text-2:      #8892a4;
+    --text-3:      #4a5568;
+    --mono:        'Space Mono', monospace;
+    --sans:        'Space Grotesk', sans-serif;
+    --radius:      12px;
+    --radius-lg:   20px;
+    --glow-cyan:   0 0 20px rgba(0,212,255,0.25);
+    --glow-green:  0 0 20px rgba(45,255,158,0.25);
+  }
 
-        .thermometer-fill {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            height: 0%;
-            border-radius: 30px;
-            transition: height 0.5s ease, background 0.4s ease;
-        }
-        .temp-label {
-            text-align: center;
-            margin-top: 10px;
-            font-weight: 600;
-        }        
-    </style>
-    </head>
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text-1);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── BG grid overlay ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: relative; z-index: 10;
+    padding: 18px 32px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(7,11,20,0.85);
+    backdrop-filter: blur(12px);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+  }
+
+  .logo {
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--cyan), var(--green));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+
+  .logo-text {
+    font-family: var(--mono);
+    font-size: 18px; font-weight: 700;
+    color: var(--text-1);
+    letter-spacing: 0.05em;
+  }
+
+  .logo-text span { color: var(--cyan); }
+
+  .header-meta {
+    display: flex; align-items: center; gap: 20px;
+  }
+
+  .status-pill {
+    display: flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 11px;
+    color: var(--green);
+    background: var(--green-dim);
+    border: 1px solid rgba(45,255,158,0.25);
+    padding: 4px 10px; border-radius: 20px;
+    letter-spacing: 0.08em;
+  }
+
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(45,255,158,0.4); }
+    50%       { opacity: 0.7; box-shadow: 0 0 0 4px rgba(45,255,158,0); }
+  }
+
+  .header-tag {
+    font-size: 11px; color: var(--text-3);
+    font-family: var(--mono); letter-spacing: 0.06em;
+  }
+
+  /* ── MAIN GRID ── */
+  .platform {
+    position: relative; z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px 24px 60px;
+    display: grid;
+    grid-template-columns: 320px 1fr 300px;
+    grid-template-rows: auto auto auto;
+    gap: 20px;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+
+  .card:hover::before { opacity: 0.6; }
+  .card:hover { border-color: rgba(0,212,255,0.22); }
+
+  .card-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--text-3);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .card-label::before {
+    content: '';
+    display: inline-block;
+    width: 16px; height: 1px;
+    background: var(--cyan);
+    opacity: 0.5;
+  }
+
+  /* ── LEFT COLUMN ── */
+  .col-left {
+    grid-column: 1;
+    grid-row: 1 / 4;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+
+  /* ── INPUT CARD ── */
+  .input-card { flex-shrink: 0; }
+
+  .input-wrap {
+    position: relative;
+    margin-bottom: 16px;
+  }
+
+  .input-unit {
+    position: absolute; right: 16px; top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--mono);
+    font-size: 22px; font-weight: 700;
+    color: var(--cyan);
+    pointer-events: none;
+  }
+
+  #celsius-input {
+    width: 100%;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 56px 20px 20px;
+    font-family: var(--mono);
+    font-size: 32px; font-weight: 700;
+    color: var(--text-1);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -moz-appearance: textfield;
+  }
+
+  #celsius-input::-webkit-inner-spin-button,
+  #celsius-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  #celsius-input:focus {
+    border-color: var(--cyan);
+    box-shadow: var(--glow-cyan);
+  }
+
+  #celsius-input::placeholder { color: var(--text-3); font-size: 24px; }
+
+  /* Range slider */
+  .slider-section { margin-bottom: 20px; }
+
+  .slider-header {
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: var(--text-2);
+    font-family: var(--mono);
+    margin-bottom: 8px;
+    letter-spacing: 0.06em;
+  }
+
+  #temp-slider {
+    -webkit-appearance: none;
+    width: 100%; height: 4px;
+    background: linear-gradient(
+      to right,
+      #00aaff 0%, #00d4ff 25%, #2dff9e 50%, #ffaa00 75%, #ff4757 100%
+    );
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  #temp-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: white;
+    border: 3px solid var(--cyan);
+    box-shadow: 0 0 8px rgba(0,212,255,0.5);
+    transition: transform 0.1s;
+  }
+
+  #temp-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+  .slider-ticks {
+    display: flex; justify-content: space-between;
+    font-size: 10px; color: var(--text-3);
+    font-family: var(--mono);
+    margin-top: 6px;
+  }
+
+  /* Precision */
+  .precision-row {
+    display: flex; align-items: center; gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .precision-label {
+    font-size: 11px; color: var(--text-2);
+    font-family: var(--mono);
+    letter-spacing: 0.08em;
+    flex-shrink: 0;
+  }
+
+  .precision-btn {
+    flex: 1; min-width: 40px;
+    padding: 7px 0;
+    background: var(--panel-2);
+    border: 1px solid var(--border-2);
+    border-radius: 6px;
+    color: var(--text-2);
+    font-family: var(--mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+
+  .precision-btn.active {
+    background: var(--cyan-dim);
+    border-color: var(--cyan);
+    color: var(--cyan);
+    font-weight: 700;
+  }
+
+  .precision-btn:hover:not(.active) {
+    border-color: var(--border);
+    color: var(--text-1);
+  }
+
+  /* Presets */
+  .presets-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .preset-btn {
+    background: var(--panel-2);
+    border: 1px solid var(--border-2);
+    border-radius: 8px;
+    padding: 10px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+  }
+
+  .preset-btn:hover {
+    border-color: var(--cyan);
+    background: var(--cyan-dim);
+  }
+
+  .preset-btn .preset-name {
+    font-size: 10px; color: var(--text-2);
+    font-family: var(--mono);
+    letter-spacing: 0.06em;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .preset-btn .preset-val {
+    font-size: 15px; font-weight: 700;
+    color: var(--text-1);
+    font-family: var(--mono);
+  }
+
+  .preset-btn:hover .preset-name { color: var(--cyan); }
+  .preset-btn:hover .preset-val  { color: var(--cyan); }
+
+  /* ── THERMOMETER CARD ── */
+  .thermo-card {
+    flex: 1;
+    display: flex; flex-direction: column;
+    align-items: center;
+  }
+
+  .thermo-stage {
+    flex: 1; width: 100%;
+    display: flex; align-items: flex-end; justify-content: center;
+    gap: 24px;
+    padding: 8px 0 12px;
+  }
+
+  /* Thermometer visual */
+  .thermo-body {
+    position: relative;
+    width: 44px;
+    display: flex; flex-direction: column;
+    align-items: center;
+  }
+
+  .thermo-tube {
+    width: 28px;
+    height: 180px;
+    border: 2px solid rgba(0,212,255,0.3);
+    border-radius: 14px;
+    background: rgba(255,255,255,0.04);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Zone bands */
+  .thermo-zone {
+    position: absolute; left: 0; right: 0;
+    opacity: 0.08;
+  }
+
+  .thermo-fill {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    border-radius: 14px;
+    transition: height 0.6s cubic-bezier(0.34,1.56,0.64,1),
+                background 0.5s ease;
+    height: 0%;
+  }
+
+  .thermo-bulb {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 2px solid rgba(0,212,255,0.3);
+    background: rgba(0,212,255,0.1);
+    margin-top: -2px;
+    transition: background 0.5s, box-shadow 0.5s;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+
+  /* Scale labels */
+  .thermo-scale {
+    display: flex; flex-direction: column;
+    justify-content: space-between;
+    height: 180px;
+    padding: 4px 0;
+  }
+
+  .scale-tick {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text-3);
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+
+  /* ── CENTER COLUMN ── */
+  .col-center {
+    grid-column: 2;
+    grid-row: 1 / 4;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+
+  /* Results display */
+  .results-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+  }
+
+  .result-card {
+    background: var(--panel-2);
+    border: 1px solid var(--border-2);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .result-card.primary {
+    border-color: var(--cyan);
+    background: var(--cyan-dim);
+  }
+
+  .result-card.primary::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(0,212,255,0.1), transparent 70%);
+    pointer-events: none;
+  }
+
+  .result-unit {
+    font-family: var(--mono);
+    font-size: 11px; letter-spacing: 0.12em;
+    color: var(--text-3);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .result-value {
+    font-family: var(--mono);
+    font-size: 36px; font-weight: 700;
+    color: var(--text-1);
+    line-height: 1;
+    transition: all 0.3s;
+    letter-spacing: -0.02em;
+  }
+
+  .result-card.primary .result-value { color: var(--cyan); }
+
+  .result-sublabel {
+    font-size: 11px; color: var(--text-3);
+    margin-top: 6px;
+    font-family: var(--mono);
+  }
+
+  /* Classification badge */
+  .classification-card {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+  }
+
+  .class-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-family: var(--mono);
+    font-size: 13px; font-weight: 700;
+    letter-spacing: 0.08em;
+    transition: all 0.4s;
+  }
+
+  .class-badge.cryogenic  { background: rgba(100,149,237,0.15); border: 1px solid #6495ed; color: #6495ed; }
+  .class-badge.refrigerated { background: rgba(0,191,255,0.12); border: 1px solid #00bfff; color: #00bfff; }
+  .class-badge.room       { background: var(--green-dim);  border: 1px solid var(--green);  color: var(--green); }
+  .class-badge.physiological { background: rgba(255,215,0,0.12); border: 1px solid gold;  color: gold; }
+  .class-badge.elevated   { background: var(--amber-dim); border: 1px solid var(--amber); color: var(--amber); }
+  .class-badge.boiling    { background: rgba(255,120,50,0.12); border: 1px solid #ff7832; color: #ff7832; }
+  .class-badge.extreme    { background: var(--red-dim);   border: 1px solid var(--red);   color: var(--red); }
+
+  .class-badge .class-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulse-dot 1.8s ease-in-out infinite;
+  }
+
+  .class-desc {
+    flex: 1;
+    font-size: 13px;
+    color: var(--text-2);
+    line-height: 1.5;
+    font-style: italic;
+  }
+
+  /* Range bar */
+  .range-card {}
+
+  .range-bar-wrap {
+    position: relative;
+    height: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: linear-gradient(
+      to right,
+      #6495ed 0%, #00bfff 20%, #2dff9e 40%, gold 60%, #ffaa00 75%, #ff7832 88%, #ff4757 100%
+    );
+    margin: 10px 0 8px;
+  }
+
+  .range-cursor {
+    position: absolute; top: 0; bottom: 0;
+    width: 3px;
+    background: white;
+    border-radius: 2px;
+    box-shadow: 0 0 8px rgba(255,255,255,0.8);
+    transition: left 0.5s cubic-bezier(0.34,1.56,0.64,1);
+    transform: translateX(-50%);
+  }
+
+  .range-labels {
+    display: flex; justify-content: space-between;
+    font-family: var(--mono); font-size: 9px; color: var(--text-3);
+    letter-spacing: 0.06em;
+  }
+
+  /* Formula card */
+  .formula-card {}
+
+  .formula-display {
+    background: var(--panel-2);
+    border: 1px solid var(--border-2);
+    border-radius: 10px;
+    padding: 18px 20px;
+    font-family: var(--mono);
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  .formula-main {
+    font-size: 20px; font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+
+  .formula-sub {
+    font-size: 12px; color: var(--text-3);
+  }
+
+  .calc-steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    align-items: center;
+  }
+
+  .calc-step {
+    background: var(--panel-2);
+    border: 1px solid var(--border-2);
+    border-radius: 8px;
+    padding: 14px 10px;
+    text-align: center;
+    transition: all 0.3s;
+  }
+
+  .calc-step.active {
+    border-color: var(--cyan);
+    background: var(--cyan-dim);
+  }
+
+  .calc-step-label {
+    font-size: 10px; color: var(--text-3);
+    font-family: var(--mono);
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+
+  .calc-step-val {
+    font-family: var(--mono);
+    font-size: 16px; font-weight: 700;
+    color: var(--text-1);
+    transition: all 0.3s;
+    min-height: 22px;
+  }
+
+  .calc-step.active .calc-step-val { color: var(--cyan); }
+
+  .calc-arrow {
+    text-align: center;
+    font-size: 18px;
+    color: var(--text-3);
+    flex-shrink: 0;
+  }
+
+  .calc-steps-wrap {
+    display: grid;
+    grid-template-columns: 1fr 24px 1fr 24px 1fr 24px 1fr;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .step-arrow {
+    text-align: center;
+    color: var(--text-3);
+    font-size: 14px;
+  }
+
+  /* ── RIGHT COLUMN ── */
+  .col-right {
+    grid-column: 3;
+    grid-row: 1 / 4;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+
+  /* Reference points */
+  .ref-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .ref-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    background: var(--panel-2);
+    border: 1px solid var(--border-2);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .ref-item:hover {
+    border-color: rgba(0,212,255,0.3);
+    background: var(--cyan-dim);
+  }
+
+  .ref-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .ref-name {
+    flex: 1;
+    font-size: 12px; color: var(--text-2);
+    font-family: var(--sans);
+  }
+
+  .ref-temp {
+    font-family: var(--mono);
+    font-size: 13px; font-weight: 700;
+    color: var(--text-1);
+  }
+
+  /* Context card */
+  .context-display {
+    background: var(--panel-2);
+    border: 1px solid var(--border-2);
+    border-radius: 10px;
+    padding: 16px;
+    min-height: 90px;
+    transition: all 0.3s;
+  }
+
+  .context-icon { font-size: 22px; margin-bottom: 8px; }
+
+  .context-text {
+    font-size: 13px; color: var(--text-2);
+    line-height: 1.6;
+  }
+
+  /* Sci notation */
+  .sci-note-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--panel-2);
+    border: 1px solid var(--border-2);
+    border-radius: 8px;
+    margin-top: 10px;
+  }
+
+  .sci-note-label {
+    font-family: var(--mono);
+    font-size: 11px; color: var(--text-3);
+    letter-spacing: 0.08em;
+  }
+
+  .sci-note-val {
+    font-family: var(--mono);
+    font-size: 13px; font-weight: 700;
+    color: var(--purple);
+  }
+
+  /* History */
+  .history-list {
+    display: flex; flex-direction: column; gap: 6px;
+    max-height: 200px; overflow-y: auto;
+  }
+
+  .history-list::-webkit-scrollbar { width: 4px; }
+  .history-list::-webkit-scrollbar-track { background: transparent; }
+  .history-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .history-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 12px;
+    background: var(--panel-2);
+    border: 1px solid var(--border-2);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    gap: 8px;
+  }
+
+  .history-item:hover {
+    border-color: rgba(0,212,255,0.2);
+    background: var(--cyan-dim);
+  }
+
+  .history-vals {
+    font-family: var(--mono);
+    font-size: 13px; font-weight: 700;
+    color: var(--text-1);
+  }
+
+  .history-time {
+    font-family: var(--mono);
+    font-size: 10px; color: var(--text-3);
+  }
+
+  .history-empty {
+    font-size: 12px; color: var(--text-3);
+    text-align: center; padding: 20px;
+    font-family: var(--mono);
+  }
+
+  /* Footer */
+  .platform-footer {
+    position: relative; z-index: 1;
+    text-align: center;
+    padding: 20px 24px 32px;
+    font-family: var(--mono);
+    font-size: 11px; color: var(--text-3);
+    letter-spacing: 0.08em;
+    border-top: 1px solid var(--border-2);
+  }
+
+  /* Feedback */
+  .feedback-card {}
+
+  .feedback-input, .feedback-textarea {
+    width: 100%;
+    background: var(--panel-2);
+    border: 1px solid var(--border-2);
+    border-radius: 8px;
+    padding: 12px 14px;
+    color: var(--text-1);
+    font-family: var(--sans);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+    margin-bottom: 8px;
+    resize: vertical;
+  }
+
+  .feedback-input:focus, .feedback-textarea:focus {
+    border-color: var(--cyan);
+  }
+
+  .feedback-input::placeholder, .feedback-textarea::placeholder {
+    color: var(--text-3);
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(45,255,158,0.1));
+    border: 1px solid var(--cyan);
+    border-radius: 8px;
+    color: var(--cyan);
+    font-family: var(--mono);
+    font-size: 13px; font-weight: 700;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .submit-btn:hover {
+    background: var(--cyan);
+    color: var(--bg);
+  }
+
+  .form-status {
+    margin-top: 8px;
+    font-size: 12px;
+    font-family: var(--mono);
+    text-align: center;
+    min-height: 18px;
+    color: var(--green);
+  }
+
+  /* Number animation */
+  @keyframes num-flash {
+    0%   { opacity: 0.3; transform: translateY(-4px); }
+    100% { opacity: 1;   transform: translateY(0); }
+  }
+
+  .num-animate {
+    animation: num-flash 0.3s ease forwards;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 1100px) {
+    .platform {
+      grid-template-columns: 280px 1fr;
+      grid-template-rows: auto;
+    }
+    .col-left  { grid-column: 1; grid-row: 1; }
+    .col-center{ grid-column: 2; grid-row: 1; }
+    .col-right { grid-column: 1 / 3; grid-row: 2; flex-direction: row; flex-wrap: wrap; }
+    .col-right .card { flex: 1; min-width: 260px; }
+  }
+
+  @media (max-width: 720px) {
+    .platform {
+      grid-template-columns: 1fr;
+      padding: 20px 16px 40px;
+    }
+    .col-left, .col-center, .col-right { grid-column: 1; grid-row: auto; }
+    .results-row { grid-template-columns: 1fr 1fr 1fr; }
+    .calc-steps-wrap { grid-template-columns: 1fr 16px 1fr 16px 1fr 16px 1fr; }
+    .calc-step-val { font-size: 12px; }
+  }
+
+  @media (max-width: 480px) {
+    .results-row { grid-template-columns: 1fr; }
+    .calc-steps-wrap {
+      grid-template-columns: 1fr;
+    }
+    .step-arrow { display: none; }
+    .presets-grid { grid-template-columns: 1fr 1fr; }
+    .header-tag { display: none; }
+  }
+
+  /* ── TOOLTIP ── */
+  [data-tip] { position: relative; }
+  [data-tip]::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%; transform: translateX(-50%);
+    background: #1a2236;
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    font-family: var(--mono);
+    font-size: 10px;
+    white-space: nowrap;
+    padding: 4px 8px;
+    border-radius: 4px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 100;
+  }
+  [data-tip]:hover::after { opacity: 1; }
+
+  /* Glow accent top of page */
+  .page-glow {
+    position: fixed;
+    top: -100px; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 250px;
+    background: radial-gradient(ellipse, rgba(0,212,255,0.07), transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+</style>
+</head>
 <body>
 
-<div class="container">
-    <h1>TempSwitch</h1>
-    <h2>Celsius -> Fahrenheit</h2>
+<div class="page-glow"></div>
 
-    <input type="number" id="celsius" placeholder="Enter degrees Celsius">
-
-    <button onclick="convert()">Convert</button>
-
-    <div class="result" id="output"></div>
-
-    <!-- Thermometer Visual -->
-    <div class="thermometer-wrapper">
-        <div class="thermometer">
-            <div class="thermometer-fill" id="thermoFill"></div>
-        </div>
-        <div class="temp-label" id="tempLabel"></div>
+<header>
+  <div class="logo">
+    <div class="logo-icon">🌡</div>
+    <span class="logo-text">Temp<span>Switch</span></span>
+  </div>
+  <div class="header-meta">
+    <span class="header-tag">LABORATORY TEMPERATURE ANALYSIS PLATFORM · v2.4.1</span>
+    <div class="status-pill">
+      <div class="status-dot"></div>
+      ONLINE
     </div>
+  </div>
+</header>
 
-    <!-- Feedback Section -->
-    <div class="feedback">
-        <h2>Send Feedback</h2>
+<div class="platform">
 
-        <form 
-            action="https://formspree.io/f/mdalgdnj" 
-            method="POST"
-            id="feedbackForm"
+  <!-- ═══════════════════════════════ LEFT COLUMN ═══════════════════════════════ -->
+  <div class="col-left">
+
+    <!-- Input Card -->
+    <div class="card input-card">
+      <div class="card-label">Input · Celsius</div>
+      <div class="input-wrap">
+        <input
+          type="number"
+          id="celsius-input"
+          placeholder="0.0"
+          step="0.1"
+          oninput="onInput()"
         >
-            <input 
-                type="text" 
-                name="name" 
-                placeholder="Your name" 
-                required
-            >
+        <span class="input-unit">°C</span>
+      </div>
 
-            <textarea 
-                name="message" 
-                rows="4" 
-                placeholder="Your message" 
-                required
-            ></textarea>
+      <div class="slider-section">
+        <div class="slider-header">
+          <span>RANGE</span>
+          <span id="slider-readout">−100 … 200 °C</span>
+        </div>
+        <input type="range" id="temp-slider" min="-100" max="200" value="0" step="0.5" oninput="onSlider()">
+        <div class="slider-ticks">
+          <span>−100°</span>
+          <span>0°</span>
+          <span>100°</span>
+          <span>200°</span>
+        </div>
+      </div>
 
-            <button type="submit">Send Message</button>
-        </form>
-
-        <div id="formStatus" class="result"></div>
+      <div class="card-label">Decimal Precision</div>
+      <div class="precision-row">
+        <span class="precision-label">DEC</span>
+        <button class="precision-btn" onclick="setPrecision(0)">0</button>
+        <button class="precision-btn active" onclick="setPrecision(2)">2</button>
+        <button class="precision-btn" onclick="setPrecision(4)">4</button>
+        <button class="precision-btn" onclick="setPrecision(6)">6</button>
+      </div>
     </div>
 
-    <footer>
-        © Ethan LLM Works
-    </footer>
+    <!-- Presets -->
+    <div class="card">
+      <div class="card-label">Scientific Presets</div>
+      <div class="presets-grid">
+        <button class="preset-btn" onclick="setPreset(-196)" data-tip="Liquid nitrogen">
+          <span class="preset-name">LN₂</span>
+          <span class="preset-val">−196°C</span>
+        </button>
+        <button class="preset-btn" onclick="setPreset(-80)" data-tip="Biobank storage">
+          <span class="preset-name">CRYO</span>
+          <span class="preset-val">−80°C</span>
+        </button>
+        <button class="preset-btn" onclick="setPreset(0)" data-tip="Water freezing">
+          <span class="preset-name">FREEZE</span>
+          <span class="preset-val">0°C</span>
+        </button>
+        <button class="preset-btn" onclick="setPreset(4)" data-tip="Reagent storage">
+          <span class="preset-name">FRIDGE</span>
+          <span class="preset-val">4°C</span>
+        </button>
+        <button class="preset-btn" onclick="setPreset(25)" data-tip="Bench conditions">
+          <span class="preset-name">AMBIENT</span>
+          <span class="preset-val">25°C</span>
+        </button>
+        <button class="preset-btn" onclick="setPreset(37)" data-tip="Human body temp">
+          <span class="preset-name">BODY</span>
+          <span class="preset-val">37°C</span>
+        </button>
+        <button class="preset-btn" onclick="setPreset(72)" data-tip="PCR extension">
+          <span class="preset-name">PCR EXT</span>
+          <span class="preset-val">72°C</span>
+        </button>
+        <button class="preset-btn" onclick="setPreset(95)" data-tip="DNA denaturation">
+          <span class="preset-name">DENATURE</span>
+          <span class="preset-val">95°C</span>
+        </button>
+        <button class="preset-btn" onclick="setPreset(100)" data-tip="Water boiling">
+          <span class="preset-name">BOIL</span>
+          <span class="preset-val">100°C</span>
+        </button>
+        <button class="preset-btn" onclick="setPreset(121)" data-tip="Autoclave cycle">
+          <span class="preset-name">AUTOCLAVE</span>
+          <span class="preset-val">121°C</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Thermometer -->
+    <div class="card thermo-card">
+      <div class="card-label">Thermal Indicator</div>
+      <div class="thermo-stage">
+        <!-- left scale -->
+        <div class="thermo-scale" id="celsius-scale"></div>
+
+        <div class="thermo-body">
+          <div class="thermo-tube">
+            <div class="thermo-fill" id="thermo-fill"></div>
+          </div>
+          <div class="thermo-bulb" id="thermo-bulb">💧</div>
+        </div>
+
+        <!-- right scale -->
+        <div class="thermo-scale" id="fahrenheit-scale"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════ CENTER COLUMN ═══════════════════════════════ -->
+  <div class="col-center">
+
+    <!-- Result cards -->
+    <div class="card">
+      <div class="card-label">Conversion Output</div>
+      <div class="results-row">
+        <div class="result-card">
+          <div class="result-unit">Celsius</div>
+          <div class="result-value" id="out-c">—</div>
+          <div class="result-sublabel">°C · Input</div>
+        </div>
+        <div class="result-card primary">
+          <div class="result-unit">Fahrenheit</div>
+          <div class="result-value" id="out-f">—</div>
+          <div class="result-sublabel">°F · Output</div>
+        </div>
+        <div class="result-card">
+          <div class="result-unit">Kelvin</div>
+          <div class="result-value" id="out-k">—</div>
+          <div class="result-sublabel">K · Absolute</div>
+        </div>
+      </div>
+
+      <!-- Sci notation -->
+      <div class="sci-note-row">
+        <span class="sci-note-label">SCIENTIFIC NOTATION (°F)</span>
+        <span class="sci-note-val" id="out-sci">—</span>
+      </div>
+    </div>
+
+    <!-- Classification -->
+    <div class="card classification-card">
+      <div>
+        <div class="card-label">Temperature Classification</div>
+        <div class="class-badge room" id="class-badge">
+          <span class="class-dot"></span>
+          <span id="class-name">AWAITING INPUT</span>
+        </div>
+      </div>
+      <div class="class-desc" id="class-desc">Enter a Celsius value to classify the thermal environment.</div>
+    </div>
+
+    <!-- Range bar -->
+    <div class="card range-card">
+      <div class="card-label">Thermal Spectrum Position</div>
+      <div class="range-bar-wrap">
+        <div class="range-cursor" id="range-cursor" style="left: 0%"></div>
+      </div>
+      <div class="range-labels">
+        <span>Cryogenic</span>
+        <span>Refrigerated</span>
+        <span>Room</span>
+        <span>Physiological</span>
+        <span>Boiling</span>
+        <span>Extreme</span>
+      </div>
+    </div>
+
+    <!-- Formula -->
+    <div class="card formula-card">
+      <div class="card-label">Conversion Formula</div>
+      <div class="formula-display">
+        <div class="formula-main">°F = (°C × 9/5) + 32</div>
+        <div class="formula-sub">Standard IUPAC temperature conversion • Exact by definition</div>
+      </div>
+      <div class="calc-steps-wrap">
+        <div class="calc-step active" id="step-input">
+          <div class="calc-step-label">INPUT</div>
+          <div class="calc-step-val" id="sv-input">?</div>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="calc-step" id="step-mul">
+          <div class="calc-step-label">× 9/5</div>
+          <div class="calc-step-val" id="sv-mul">?</div>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="calc-step" id="step-add">
+          <div class="calc-step-label">+ 32</div>
+          <div class="calc-step-val" id="sv-add">?</div>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="calc-step" id="step-output">
+          <div class="calc-step-label">OUTPUT</div>
+          <div class="calc-step-val" id="sv-output">?</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calculation history -->
+    <div class="card">
+      <div class="card-label">Conversion History</div>
+      <div class="history-list" id="history-list">
+        <div class="history-empty">No conversions yet</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════ RIGHT COLUMN ═══════════════════════════════ -->
+  <div class="col-right">
+
+    <!-- Context card -->
+    <div class="card">
+      <div class="card-label">Scientific Context</div>
+      <div class="context-display" id="context-display">
+        <div class="context-icon">🔬</div>
+        <div class="context-text">Enter a temperature value to see relevant scientific and biochemical context for that thermal range.</div>
+      </div>
+    </div>
+
+    <!-- Reference points -->
+    <div class="card">
+      <div class="card-label">Biochemical Reference Points</div>
+      <div class="ref-list" id="ref-list"></div>
+    </div>
+
+    <!-- Feedback -->
+    <div class="card feedback-card">
+      <div class="card-label">Lab Feedback</div>
+      <form id="feedbackForm" action="https://formspree.io/f/mdalgdnj" method="POST">
+        <input class="feedback-input" type="text" name="name" placeholder="Researcher name" required>
+        <textarea class="feedback-textarea" name="message" rows="3" placeholder="Observation or feedback…" required></textarea>
+        <button class="submit-btn" type="submit">TRANSMIT FEEDBACK</button>
+      </form>
+      <div class="form-status" id="formStatus"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="platform-footer">
+  © Ethan LLM Works · TempSwitch Laboratory Platform · Precision Scientific Instrumentation
 </div>
 
 <script>
-    function convert() {
-        const celsius = document.getElementById("celsius").value;
+// ── STATE ─────────────────────────────────────────────
+let precision = 2;
+let history = [];
+let debounceTimer;
 
-        if (celsius === "") {
-            document.getElementById("output").innerText = "Please enter a value.";
-            return;
-        }
+// ── REFERENCE POINTS ──────────────────────────────────
+const REFS = [
+  { name: "Liquid Nitrogen",        c: -196,  color: "#6495ed", icon: "❄" },
+  { name: "Dry Ice (CO₂)",          c: -78.5, color: "#89b4fa", icon: "🧊" },
+  { name: "Deep Freeze Storage",    c: -80,   color: "#74c7ec", icon: "🧪" },
+  { name: "Standard Refrigeration", c: 4,     color: "#00bfff", icon: "🧫" },
+  { name: "Water Freezing (STP)",   c: 0,     color: "#00d4ff", icon: "💧" },
+  { name: "Room Temperature",       c: 25,    color: "#2dff9e", icon: "🌡" },
+  { name: "Human Body",             c: 37,    color: "#ffd700", icon: "🧬" },
+  { name: "PCR Extension",          c: 72,    color: "#ffaa00", icon: "🔬" },
+  { name: "DNA Denaturation",       c: 95,    color: "#ff8c00", icon: "🧫" },
+  { name: "Water Boiling (STP)",    c: 100,   color: "#ff7832", icon: "♨" },
+  { name: "Autoclave Sterilization",c: 121,   color: "#ff4757", icon: "⚗" },
+];
 
-        const fahrenheit = (celsius * 9) / 5 + 32;
-        const roundedF = Math.round(fahrenheit);
+// ── CLASSIFICATION ─────────────────────────────────────
+function classify(c) {
+  if (c < -100) return {
+    key: "cryogenic", name: "CRYOGENIC",
+    desc: "Ultra-low temperatures used in cryopreservation, biobanking, and specialized material science. Biological activity is effectively suspended at these ranges.",
+    icon: "❄️"
+  };
+  if (c < 0) return {
+    key: "refrigerated", name: "REFRIGERATED",
+    desc: "Sub-zero range preserves biological reagents and tissue samples. Enzyme kinetics are substantially slowed, extending specimen viability.",
+    icon: "🧊"
+  };
+  if (c < 15) return {
+    key: "room", name: "COLD AMBIENT",
+    desc: "Cool ambient conditions suitable for cold-chain logistics and short-term sample transport. Microbial growth is inhibited but not eliminated.",
+    icon: "🌬"
+  };
+  if (c < 30) return {
+    key: "room", name: "ROOM TEMPERATURE",
+    desc: "Standard laboratory bench conditions (20–25°C). Most biochemical assays, PCR preparations, and reagent handling occur in this zone.",
+    icon: "🔬"
+  };
+  if (c < 42) return {
+    key: "physiological", name: "PHYSIOLOGICAL",
+    desc: "Mammalian physiological range. Human core body temperature (~37°C) falls here. Optimal for cell culture incubation and enzyme activity assays.",
+    icon: "🧬"
+  };
+  if (c < 70) return {
+    key: "elevated", name: "ELEVATED",
+    desc: "Thermophilic organism activity range. Many bacterial enzymes denature above 45°C. Useful for selective growth media and heat-shock protocols.",
+    icon: "🌡"
+  };
+  if (c < 105) return {
+    key: "boiling", name: "BOILING ZONE",
+    desc: "Approaching or exceeding water's boiling point at STP. Used in PCR denaturation steps, sterilization protocols, and chemical synthesis.",
+    icon: "♨️"
+  };
+  return {
+    key: "extreme", name: "EXTREME HEAT",
+    desc: "High-temperature industrial and chemical processes. Autoclave sterilization (121°C) and pyrolysis reactions occur in this range.",
+    icon: "🔥"
+  };
+}
 
-        document.getElementById("output").innerText =
-            `${celsius}°C is ${roundedF}°F`;
+// ── SCIENTIFIC CONTEXT ─────────────────────────────────
+function sciContext(c) {
+  const contexts = [
+    { min: -200, max: -150, icon: "❄", text: "Liquid nitrogen territory (−196°C boiling point). Used in cryopreservation of gametes, stem cells, and microbial cultures. Biological processes are completely arrested." },
+    { min: -150, max: -60,  icon: "🧊", text: "Deep cryogenic storage. −80°C freezers are standard for long-term biobanking of plasma, RNA, and enzymes. Cold chain logistics operate here." },
+    { min: -60, max: -1,   icon: "❄", text: "Sub-zero refrigeration. Dry ice (−78.5°C) is commonly used for transport. Biochemical activity is dramatically reduced, extending sample half-life." },
+    { min: 0, max: 3,       icon: "💧", text: "Water's freezing point at standard pressure. Protein crystallography samples are prepared just above 0°C to minimize thermal motion artifacts." },
+    { min: 4, max: 7,       icon: "🧫", text: "Standard cold-room and refrigerator temperature. Ideal for short-term storage of enzymes, antibodies, PCR reagents, and bacterial cultures." },
+    { min: 20, max: 26,     icon: "🔬", text: "Standard laboratory bench conditions. Most biochemical reactions, assay preparations, and cell culture media formulation occur at 25°C." },
+    { min: 35, max: 39,     icon: "🧬", text: "Human physiological range. 37°C is the gold standard for mammalian cell culture. CO₂ incubators maintain this temperature for in vitro experiments." },
+    { min: 50, max: 60,     icon: "🌡", text: "Thermophilic organism range. Many mesophilic enzymes begin denaturing above 50°C. Annealing temperatures in PCR typically range 50–65°C." },
+    { min: 70, max: 75,     icon: "🔬", text: "PCR extension phase temperature for Taq polymerase (72°C optimum). DNA synthesis occurs in this range during thermocycler protocols." },
+    { min: 90, max: 100,    icon: "🧫", text: "DNA denaturation range. At 94–98°C, double-stranded DNA completely separates into single strands, a critical PCR cycle step." },
+    { min: 100, max: 104,   icon: "♨", text: "Water's boiling point at sea level. Moist heat sterilization begins here. DNA melting curves and gel boiling protocols use this range." },
+    { min: 119, max: 123,   icon: "⚗", text: "Autoclave sterilization temperature (121°C, 15 psi). Standard for decontaminating laboratory equipment, culture media, and biohazardous waste." },
+  ];
+  for (const ctx of contexts) {
+    if (c >= ctx.min && c <= ctx.max) return ctx;
+  }
+  return null;
+}
 
-        // Temperature range
-        const minF = -40;
-        const maxF = 120;
+// ── THERMOMETER SCALES ─────────────────────────────────
+function buildScales() {
+  const cScale = document.getElementById('celsius-scale');
+  const fScale = document.getElementById('fahrenheit-scale');
+  const cTicks = [-100, -50, 0, 50, 100, 150, 200];
+  cScale.innerHTML = cTicks.slice().reverse().map(v =>
+    `<span class="scale-tick">${v}°C</span>`
+  ).join('');
+  fScale.innerHTML = cTicks.slice().reverse().map(v => {
+    const f = Math.round(v * 9/5 + 32);
+    return `<span class="scale-tick">${f}°F</span>`;
+  }).join('');
+}
 
-        // Normalize temperature (0 → 1)
-        let normalized = (roundedF - minF) / (maxF - minF);
-        normalized = Math.max(0, Math.min(1, normalized));
+// ── BUILD REFERENCE LIST ───────────────────────────────
+function buildRefList() {
+  const list = document.getElementById('ref-list');
+  list.innerHTML = REFS.map(r => `
+    <div class="ref-item" onclick="setPreset(${r.c})" data-tip="Click to load">
+      <div class="ref-dot" style="background:${r.color}"></div>
+      <span class="ref-name">${r.icon} ${r.name}</span>
+      <span class="ref-temp">${r.c}°C</span>
+    </div>
+  `).join('');
+}
 
-        // Thermometer height
-        const percentage = normalized * 100;
-        const thermoFill = document.getElementById("thermoFill");
-        thermoFill.style.height = percentage + "%";
+// ── CONVERT ───────────────────────────────────────────
+function doConvert(c) {
+  const f = (c * 9) / 5 + 32;
+  const k = c + 273.15;
+  return { f, k };
+}
 
-        // Continuous color shift (blue → red)
-        // Hue: 210 (cold blue) → 0 (hot red)
-        const hue = 210 - normalized * 210;
+// ── ANIMATE NUMBER ─────────────────────────────────────
+function animateNum(el, val) {
+  el.classList.remove('num-animate');
+  void el.offsetWidth;
+  el.textContent = val;
+  el.classList.add('num-animate');
+}
 
-        thermoFill.style.background =
-            `linear-gradient(to top,
-                hsl(${hue}, 85%, 50%),
-                hsl(${hue}, 85%, 70%)
-            )`;
+// ── UPDATE ALL ─────────────────────────────────────────
+function updateAll(c) {
+  if (c === '' || c === null || isNaN(Number(c))) return;
+  c = Number(c);
 
-        document.getElementById("tempLabel").innerText = `${roundedF}°F`;
-    }   
-    document.getElementById("feedbackForm").addEventListener("submit", async function(event) {
-    event.preventDefault();
+  const { f, k } = doConvert(c);
+  const fR = parseFloat(f.toFixed(precision));
+  const kR = parseFloat(k.toFixed(precision));
 
-    const form = event.target;
-    const data = new FormData(form);
-    const status = document.getElementById("formStatus");
+  // Update outputs
+  animateNum(document.getElementById('out-c'), c.toFixed(precision));
+  animateNum(document.getElementById('out-f'), fR);
+  animateNum(document.getElementById('out-k'), kR);
 
-    try {
-        const response = await fetch(form.action, {
-            method: form.method,
-            body: data,
-            headers: {
-                'Accept': 'application/json'
-            }
-        });
+  // Scientific notation
+  document.getElementById('out-sci').textContent = f.toExponential(3) + ' °F';
 
-        if (response.ok) {
-            status.innerText = "Thank you! Your message has been sent.";
-            form.reset();
-        } else {
-            status.innerText = "Oops! Something went wrong. Please try again.";
-        }
-    } catch (error) {
-        status.innerText = "Network error. Please try again later.";
+  // Formula steps
+  const mul = c * 9/5;
+  const mulR = parseFloat(mul.toFixed(precision));
+  const outR = parseFloat((mul + 32).toFixed(precision));
+
+  document.getElementById('sv-input').textContent  = c.toFixed(precision) + '°';
+  document.getElementById('sv-mul').textContent    = mulR;
+  document.getElementById('sv-add').textContent    = outR;
+  document.getElementById('sv-output').textContent = fR + '°F';
+
+  // Classification
+  const cls = classify(c);
+  const badge = document.getElementById('class-badge');
+  badge.className = 'class-badge ' + cls.key;
+  document.getElementById('class-name').textContent = cls.name;
+  document.getElementById('class-desc').textContent = cls.desc;
+
+  // Range cursor: map −200…500 → 0%…100%
+  const minC = -200, maxC = 300;
+  const norm = Math.max(0, Math.min(1, (c - minC) / (maxC - minC)));
+  document.getElementById('range-cursor').style.left = (norm * 100) + '%';
+
+  // Context
+  const ctx = sciContext(c);
+  const ctxEl = document.getElementById('context-display');
+  if (ctx) {
+    ctxEl.innerHTML = `<div class="context-icon">${ctx.icon}</div><div class="context-text">${ctx.text}</div>`;
+  } else {
+    const cat = classify(c);
+    ctxEl.innerHTML = `<div class="context-icon">${cat.key === 'extreme' ? '🔥' : '🌡'}</div>
+      <div class="context-text">${cat.desc}</div>`;
+  }
+
+  // Thermometer
+  const tMin = -100, tMax = 200;
+  const tNorm = Math.max(0, Math.min(1, (c - tMin) / (tMax - tMin)));
+  const pct = tNorm * 100;
+  const fill = document.getElementById('thermo-fill');
+  const bulb = document.getElementById('thermo-bulb');
+  fill.style.height = pct + '%';
+
+  const hue = 210 - tNorm * 210;
+  fill.style.background = `linear-gradient(to top, hsl(${hue},90%,45%), hsl(${hue},80%,65%))`;
+  bulb.style.background = `radial-gradient(circle, hsl(${hue},80%,50%), hsl(${hue},80%,30%))`;
+  bulb.style.boxShadow = `0 0 12px hsl(${hue},80%,50%)`;
+  bulb.textContent = c < 0 ? '❄' : c < 40 ? '💧' : c < 80 ? '🌡' : '🔥';
+
+  // Slider sync
+  const slider = document.getElementById('temp-slider');
+  const clampedForSlider = Math.max(-100, Math.min(200, c));
+  slider.value = clampedForSlider;
+
+  // History (debounced)
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => addHistory(c, fR, kR), 800);
+}
+
+// ── HISTORY ───────────────────────────────────────────
+function addHistory(c, f, k) {
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  history.unshift({ c, f, k, time: timeStr });
+  if (history.length > 8) history.pop();
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  if (!history.length) {
+    list.innerHTML = '<div class="history-empty">No conversions yet</div>';
+    return;
+  }
+  list.innerHTML = history.map(h => `
+    <div class="history-item" onclick="loadHistory(${h.c})">
+      <span class="history-vals">${h.c.toFixed(2)}°C → ${h.f}°F → ${h.k}K</span>
+      <span class="history-time">${h.time}</span>
+    </div>
+  `).join('');
+}
+
+function loadHistory(c) {
+  document.getElementById('celsius-input').value = c;
+  updateAll(c);
+}
+
+// ── EVENTS ─────────────────────────────────────────────
+function onInput() {
+  const v = document.getElementById('celsius-input').value;
+  updateAll(v);
+}
+
+function onSlider() {
+  const v = document.getElementById('temp-slider').value;
+  document.getElementById('celsius-input').value = v;
+  updateAll(Number(v));
+}
+
+function setPrecision(p) {
+  precision = p;
+  document.querySelectorAll('.precision-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.trim() == p);
+  });
+  const v = document.getElementById('celsius-input').value;
+  if (v !== '') updateAll(Number(v));
+}
+
+function setPreset(c) {
+  document.getElementById('celsius-input').value = c;
+  updateAll(c);
+}
+
+// ── FEEDBACK ───────────────────────────────────────────
+document.getElementById('feedbackForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const form = e.target;
+  const status = document.getElementById('formStatus');
+  try {
+    const resp = await fetch(form.action, {
+      method: 'POST',
+      body: new FormData(form),
+      headers: { Accept: 'application/json' }
+    });
+    if (resp.ok) {
+      status.textContent = '✓ Transmission successful.';
+      status.style.color = 'var(--green)';
+      form.reset();
+    } else {
+      status.textContent = '✗ Transmission failed. Please retry.';
+      status.style.color = 'var(--red)';
     }
+  } catch {
+    status.textContent = '✗ Network error. Check connection.';
+    status.style.color = 'var(--amber)';
+  }
 });
+
+// ── INIT ───────────────────────────────────────────────
+buildScales();
+buildRefList();
+// Load with room temperature
+setTimeout(() => setPreset(25), 100);
 </script>
 </body>
 </html>
